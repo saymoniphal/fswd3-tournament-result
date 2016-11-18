@@ -4,22 +4,46 @@
 #
 
 import psycopg2
-
+import config
 
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
-    return psycopg2.connect("dbname=tournament")
 
+    try:
+       """Read connection parameters"""
+        params = config.readconfig()
+        conn = psycopg2.connect(host=params{'host'},
+                                database=params{'database'})
+        return conn 
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
 
 def deleteMatches():
     """Remove all the match records from the database."""
-
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("DELETE from match")
+    cur.close()
+    conn.close()
 
 def deletePlayers():
     """Remove all the player records from the database."""
+    conn = connect()
+    cursor = conn.cursor()
+
+    """Since table match reference to player, need to delete records from
+    match first"""
+    cursor.execute("DELETE from match, delete from player")
+    cur.close()
+    conn.close()
 
 def deleteTournament():
     """Remove all the tournament records from the database."""
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("DELETE from tournament")
+    cur.close()
+    conn.close()
 
 def countPlayers():
     """Returns the number of players currently registered."""
