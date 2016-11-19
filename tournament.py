@@ -5,6 +5,7 @@
 
 import psycopg2
 import config
+import time
 
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
@@ -17,13 +18,16 @@ def connect():
         return conn 
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
+        if conn is not None:
+           conn.close()
 
 def deleteMatches():
     """Remove all the match records from the database."""
     conn = connect()
     cursor = conn.cursor()
     cursor.execute("DELETE from match")
-    cur.close()
+    conn.commit()
+    cursor.close()
     conn.close()
 
 def deletePlayers():
@@ -34,7 +38,8 @@ def deletePlayers():
     """Since table match reference to player, need to delete records from
     match first"""
     cursor.execute("DELETE from match, delete from player")
-    cur.close()
+    conn.commit()
+    cursor.close()
     conn.close()
 
 def deleteTournament():
@@ -42,11 +47,32 @@ def deleteTournament():
     conn = connect()
     cursor = conn.cursor()
     cursor.execute("DELETE from tournament")
-    cur.close()
+    conn.commit()
+    cursor.close()
     conn.close()
 
 def countPlayers():
-    """Returns the number of players currently registered."""
+    """Returns the number of players registered for all tournaments."""
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT count(*) as nums from players")
+    nums = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return nums
+
+def countPlayers_in_tournament(tournament):
+    """Returns the number of players registered for given tournament.
+    Args:
+        tournament: the tournament id
+    """
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT count(*) as nums from players")
+    nums = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return nums
 
 def registerTournament(name, year=None)
     """Add a tournament to the tournament database.
@@ -57,6 +83,15 @@ def registerTournament(name, year=None)
        year: the  year that the tournament taken place
        (current year will be added in case of None)
     """
+    sql = "INSERT INTO %s VALUES (%s)"
+    if year is None:
+       year = time.localtime().tm_year
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute(sql, ('tournament', name, year))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 def registerPlayer(name, kwargs=None):
     """Adds a player to the tournament database.
@@ -69,6 +104,20 @@ def registerPlayer(name, kwargs=None):
       kwargs: a dictionary with key: 'gender', 'dob' as additional information
       of the player, could be None
     """
+    sql = "INSERT INTO %s (name"
+    if 'gender' in kwargs:
+       gender = kwargs['gender']
+       sql += ", gender"
+    if 'dob' in kwargs:
+       dob = kwargs['dob'] 
+       sql += ", dob"
+    sql += ") values (%)"
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute(sql, ('player', name, gender, dob))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 def playerStandings(tournament):
     """Returns a list of the players and their win records, sorted by wins.
