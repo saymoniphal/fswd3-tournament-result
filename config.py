@@ -1,6 +1,6 @@
-from configparser import ConfigParser
+from ConfigParser import ConfigParser
 
-def config(filename, section='postgresql'):
+def readconfig(filename, section='postgresql'):
    """Read database configuration file (similar to INI files in Windows).
    Args:
       - filename: the name of configuration file which follow format of:
@@ -15,7 +15,7 @@ def config(filename, section='postgresql'):
    parser = ConfigParser()
    parser.read(filename)
    if parser.has_section(section):
-       return parser.items()
+       return dict(parser.items(section))
    else:
        raise Exception('Section %s not found in file %s.',
                        format(section,filename)) 
