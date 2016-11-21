@@ -13,11 +13,18 @@ CREATE TABLE tournament(
    id SERIAL PRIMARY KEY
 );
 
+CREATE TABLE tournamentplayers (
+   tournament_id integer REFERENCES tournament (id),
+   player_id integer REFERENCES player (id),
+   PRIMARY KEY (tournament_id, player_id)
+);
+
 CREATE TABLE match(
    winner_id integer REFERENCES player (id),
    loser_id integer REFERENCES player (id),
+   match_id integer,
    tournament_id integer REFERENCES tournament (id),
-   PRIMARY KEY (winner_id, loser_id, tournament_id)
+   PRIMARY KEY (winner_id, loser_id, match_id, tournament_id)
 );
 
 -- Create a view as a result query of:
