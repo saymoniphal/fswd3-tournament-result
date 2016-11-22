@@ -8,6 +8,8 @@
 
 from tournament import *
 
+def testRegister():
+    """Test for registration of tournament and players """
 def testCount():
     """
     Test for initial player count,
@@ -15,6 +17,7 @@ def testCount():
              player count after players deleted.
     """
     deleteMatches()
+    deleteTournament()
     deletePlayers()
     c = countPlayers()
     if c == '0':
