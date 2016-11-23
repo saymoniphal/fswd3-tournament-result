@@ -11,6 +11,9 @@ import psycopg2
 import config
 
 
+"""context manager decorator for database connection for 'with' statement
+   avoiding repeating line of codes on connection commit, and close.
+"""
 @contextlib.contextmanager
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
@@ -49,15 +52,19 @@ def deleteMatches(tournament=None):
     with connect() as conn, getcursor(conn) as cursor:
         sql = "DELETE from match"
         if tournament:
-           sql += " WHERE tournament_id=%s"
-        cursor.execute(sql, [tournament])
+           sql += " WHERE tournament_id=" + tournament
+        cursor.execute(sql)
         conn.commit()
 
 
-def deleteTournament():
-    """Remove all the tournament records from the database."""
+def deleteTournament(tournament=None):
+    """Remove the tournament record(s) from the database. If tournament id
+       is None, then remove all the tournament records."""
     with connect() as conn, getcursor(conn) as cursor:
-        cursor.execute("DELETE from tournament")
+        sql = "DELETE FROM tournament"
+        if tournament is not None:
+           sql += " WHERE id = " + tournament
+        cursor.execute(sql)
         conn.commit()
 
 
@@ -81,11 +88,16 @@ def deleteTournamentPlayers():
         conn.commit()
 
 
-def countPlayers():
-    """Returns the number of players registered for all tournaments."""
+def countPlayers(tournament=None):
+    """Returns the number of players registered for tournament(s)."""
     nums = 0
     with connect() as conn, getcursor(conn) as cursor:
-        cursor.execute("SELECT count(*) as nums from player")
+        sql = "SELECT count(*) as nums from player"
+        if tournament is not None:
+           sql += " JOIN tournamentplayers \
+                    ON   hplayer.id = tournamentplayers.player_id \
+                    WHERE tournamentplayers.tournament_id = " + tournament
+        cursor.execute(sql)
         nums = cursor.fetchone()[0]
     return nums
 
