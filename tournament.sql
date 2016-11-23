@@ -27,21 +27,14 @@ CREATE TABLE match(
    PRIMARY KEY (winner_id, loser_id, match_id, tournament_id)
 );
 
--- Create a view as a result query of:
+-- Create a view to get:
 -- all player and the number of matches the player has won (wins)
--- and the number of matches the player has played (matches)
 -- in all tournaments 
 CREATE VIEW playerStandings_view AS
-   SELECT player.id, player.name, count (match.winner_id) as wins,
+   SELECT player.id, player.name, COUNT (match.winner_id) as wins,
+          COUNT (match.match_id) as matches, 
           tournament.name as tournament
    FROM player
         LEFT JOIN match ON (player.id = match.winner_id)
         LEFT JOIN tournament ON (match.tournament_id = tournament.id)
    GROUP BY player.id, tournament.name ORDER BY wins;
-
-CREATE VIEW matches_view AS
-   SELECT player.id, match.winner_id, match.loser_id
-   FROM player
-        LEFT JOIN match ON (player.id = match.winner_id) OR
-                           (player.id = match.loser_id)
-        LEFT JOIN tournament ON (match.tournament_id = tournament.id)
