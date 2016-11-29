@@ -11,12 +11,12 @@ import psycopg2
 import config
 
 
-"""context manager decorator for database connection for 'with' statement
-   avoiding repeating line of codes on connection commit, and close.
-"""
 @contextlib.contextmanager
 def connect():
-    """Connect to the PostgreSQL database.  Returns a database connection."""
+    """Connect to the PostgreSQL database.  Returns a database connection.
+       Use context manager decorator for database connection for 'with'
+       statement, avoid repeated codes on connection commit, and close."""
+
     conn = None
     try:
         params = config.readconfig('database.ini')
@@ -52,7 +52,7 @@ def deleteMatches(tournament=None):
     with connect() as conn, getcursor(conn) as cursor:
         sql = "DELETE from match"
         if tournament:
-           sql += " WHERE tournament_id=" + tournament
+            sql += " WHERE tournament_id=" + tournament
         cursor.execute(sql)
 
 
@@ -65,29 +65,29 @@ def deleteTournaments(tournament=None):
             args = (tournament,)
         else:
             sql = "DELETE FROM tournament;"
-            args = tuple() 
+            args = tuple()
         cursor.execute(sql, args)
 
 
 def deleteTournamentPlayers(tournament=None):
     with connect() as conn, getcursor(conn) as cursor:
-       if tournament is not None:
-           sql = "DELETE FROM tournamentplayers where tournament_id = %s;"
-           args = (tournament,)
-       else:
-           sql = "DELETE FROM tournamentplayers;"
-           args = (tournament,)
-       cursor.execute(sql, args)
+        if tournament is not None:
+            sql = "DELETE FROM tournamentplayers where tournament_id = %s;"
+            args = (tournament,)
+        else:
+            sql = "DELETE FROM tournamentplayers;"
+            args = (tournament,)
+        cursor.execute(sql, args)
 
 
 def deletePlayers(ids=None):
     """Remove the player(s) records in tournament from the database."""
     with connect() as conn, getcursor(conn) as cursor:
-        sql =  "DELETE from player"
+        sql = "DELETE from player"
         if ids is not None:
-           sql += " WHERE id IN ("
-           valuelist = ['%s' for i in range(len(ids))]
-           sql += ', '.join(valuelist) + ')'
+            sql += " WHERE id IN ("
+            valuelist = ['%s' for i in range(len(ids))]
+            sql += ', '.join(valuelist) + ')'
         sql += ";"
         cursor.execute(sql, ids)
 
@@ -98,7 +98,7 @@ def countPlayers(tournament=None):
     with connect() as conn, getcursor(conn) as cursor:
         sql = "SELECT count(*) as nums from player"
         if tournament is not None:
-           sql += " JOIN tournamentplayers \
+            sql += " JOIN tournamentplayers \
                     ON player.id = tournamentplayers.player_id \
                     WHERE tournamentplayers.tournament_id = %s"
         sql += ";"
@@ -131,10 +131,10 @@ def getTournamentIDs():
     """Returns list of tournament ids"""
 
     with connect() as conn, getcursor(conn) as cursor:
-       sql = "SELECT tournament_id from tournament;"
-       cursor.execute(sql)
-       ids = cursor.fetchall()
-       return ids
+        sql = "SELECT tournament_id from tournament;"
+        cursor.execute(sql)
+        ids = cursor.fetchall()
+        return ids
 
 
 def registerPlayer(name, **kwargs):
@@ -162,7 +162,7 @@ def registerPlayer(name, **kwargs):
             valuelist.append('%s')
             sql += ", dob"
         sql += ") values (" + ', '.join(valuelist) + ")"
-        # need the last inserted id to add to tournamentplayers record 
+        # need the last inserted id to add to tournamentplayers record
         sql += " RETURNING id;"
         cursor.execute(sql, queryargs)
         return cursor.fetchone()[0]
@@ -171,9 +171,9 @@ def registerPlayer(name, **kwargs):
 def getPlayer(player_id):
     """Return player record"""
     with connect() as conn, getcursor(conn) as cursor:
-       sql = "SELECT * FROM player WHERE id = %s;"
-       cursor.execute(sql, [player_id])
-       return cursor.fetchall()
+        sql = "SELECT * FROM player WHERE id = %s;"
+        cursor.execute(sql, [player_id])
+        return cursor.fetchall()
 
 
 def addPlayerToTournament(player_id, tournament_id):
@@ -183,9 +183,9 @@ def addPlayerToTournament(player_id, tournament_id):
        tournament_id: the id number of the tournament.
     """
     with connect() as conn, getcursor(conn) as cursor:
-       sql = "INSERT INTO tournamentplayers(tournament_id, player_id) VALUES \
+        sql = "INSERT INTO tournamentplayers(tournament_id, player_id) VALUES \
                (%s, %s);"
-       cursor.execute(sql, [tournament_id, player_id])
+        cursor.execute(sql, [tournament_id, player_id])
 
 
 def playerStandings(tournament):
@@ -204,17 +204,17 @@ def playerStandings(tournament):
         matches: the number of matches the player has played
     """
     with connect() as conn, getcursor(conn) as cursor:
-       sql = "SELECT * FROM playerStandings_view;"
-       cursor.execute(sql)
-       return cursor.fetchall() 
+        sql = "SELECT * FROM playerStandings_view;"
+        cursor.execute(sql)
+        return cursor.fetchall()
 
 
 def reportMatch(winner_id, loser_id, match_round, tournament_id):
     """Records the outcome of a single match between two players in a tournament.
 
     Args:
-      winner_id: the id number of the winner 
-      loser_id: the id number of the loser 
+      winner_id: the id number of the winner
+      loser_id: the id number of the loser
       match: round of match
       tournament: the id number of the tournament
     """
@@ -222,7 +222,7 @@ def reportMatch(winner_id, loser_id, match_round, tournament_id):
         sql = "INSERT INTO match (winner_id, loser_id, match_round, \
                tournament_id) VALUES (%s, %s, %s, %s);"
         queryargs = [winner_id, loser_id, match_round, tournament_id]
-        cursor.execute(sql, queryargs) 
+        cursor.execute(sql, queryargs)
 
 
 def swissPairings(tournament):
@@ -245,7 +245,6 @@ def swissPairings(tournament):
     """
     with connect() as conn, getcursor(conn) as cursor:
         standings = playerStandings(tournament)
-        id_names = [ (elem[0], elem[1]) for elem in standings ]
-        return [ (elem[0][0], elem[0][1], elem[1][0], elem[1][1])
-                 for elem in zip(id_names[::2], id_names[1::2]) ]
-
+        id_names = [(elem[0], elem[1]) for elem in standings]
+        return [(elem[0][0], elem[0][1], elem[1][0], elem[1][1])
+                for elem in zip(id_names[::2], id_names[1::2])]

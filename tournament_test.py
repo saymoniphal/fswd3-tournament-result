@@ -4,8 +4,7 @@
 
 from tournament import *
 
-def testRegister():
-    """Test for registration of tournament and players """
+
 def testCount():
     """
     Test for initial player count,
@@ -21,8 +20,9 @@ def testCount():
         raise TypeError(
             "countPlayers should return numeric zero, not string '0'.")
     if c != 0:
-        raise ValueError("After deletion, countPlayers should return zero.")
-    print "1. countPlayers() returns 0 after initial deletePlayers() execution."
+        raise ValueError("After deletion, countPlayers should return zero")
+    print("1. countPlayers() returns 0 after initial deletePlayers()"
+          "execution.")
     tournament_id = registerTournament("Tour1")
     p_id1 = registerPlayer("Chandra Nalaar")
     addPlayerToTournament(p_id1, tournament_id)
@@ -31,9 +31,9 @@ def testCount():
         raise ValueError(
             "After one player registers to tournament {t_id}, "
             "countPlayers(tournament={t_id}) should be 1. Got {c}".format(
-                          t_id=tournament_id,c=c))
+                          t_id=tournament_id, c=c))
     print("2. countPlayers(tournament={t_id}) returns 1 after one player is "
-           "registered to tournament {t_id}.".format(t_id=tournament_id))
+          "registered to tournament {t_id}.".format(t_id=tournament_id))
     p_id2 = registerPlayer("Jace Beleren")
     addPlayerToTournament(p_id2, tournament_id)
     c = countPlayers(tournament_id)
@@ -41,21 +41,21 @@ def testCount():
         raise ValueError("After two players register, countPlayers() should "
                          "be 2. Got {c}".format(c=c))
     print("3. countPlayers(tournament={t_id}) returns 2 after two players are "
-           "registered.".format(t_id=tournament_id))
+          "registered.".format(t_id=tournament_id))
 
     c = countPlayers()
     if c != 2:
         raise ValueError("After two players register to tou, countPlayers() "
                          "should be 2. Got {c}".format(c=c))
     print "4. countPlayers() returns 2 after two players are registered."
-    
+
     deleteTournamentPlayers()
     deletePlayers([p_id1])
     rec = getPlayer(p_id1)
     if len(rec) > 1:
         raise ValueError(
-            "After deleting player id {pid}, getPlayer({pid} should return zero"
-            " record but Got {rec}".format(pid=p_id1,rec=rec.len()))
+          "After deleting player id {pid}, getPlayer({pid} should return zero"
+          " record but Got {rec}".format(pid=p_id1, rec=rec.len()))
     print("5. After deletePlayer([{p_id}]), getPlayer({p_id}) return zero "
           "record.".format(p_id=p_id1))
     deletePlayers()
@@ -63,8 +63,9 @@ def testCount():
     if c != 0:
         raise ValueError("After deletion all players, countPlayers should "
                          "return zero but got {c}.".format(c=c))
-    print "6. countPlayers() returns zero after registered players are deleted."
+    print "6. countPlayers() returns zero after registered players are deleted"
     print "7. Player records successfully deleted."
+
 
 def testStandingsBeforeMatches():
     """
@@ -80,20 +81,25 @@ def testStandingsBeforeMatches():
     addPlayerToTournament(p_id2, tournament_id)
     standings = playerStandings(tournament_id)
     if len(standings) < 2:
-        raise ValueError("Players should appear in playerStandings even before "
-                         "they have played any matches.")
+        raise ValueError("Players should appear in playerStandings even "
+                         "before they have played any matches.")
     elif len(standings) > 2:
-        raise ValueError("Only registered players should appear in standings.")
+        raise ValueError(
+              "Only registered players should appear in standings.")
     if len(standings[0]) != 4:
-        raise ValueError("Each playerStandings row should have four columns.")
+        raise ValueError(
+              "Each playerStandings row should have four columns.")
     [(id1, name1, wins1, matches1), (id2, name2, wins2, matches2)] = standings
     if matches1 != 0 or matches2 != 0 or wins1 != 0 or wins2 != 0:
         raise ValueError(
             "Newly registered players should have no matches or wins.")
     if set([name1, name2]) != set(["Melpomene Murray", "Randy Schwartz"]):
-        raise ValueError("Registered players' names should appear in standings, "
-                         "even if they have no matches played.")
-    print "8. Newly registered players appear in the standings with no matches."
+        raise ValueError(
+                    "Registered players' names should appear in standings, "
+                    "even if they have no matches played.")
+    print("8. Newly registered players appear in the standings with "
+          "no matches.")
+
 
 def testReportMatches():
     """
@@ -126,35 +132,37 @@ def testReportMatches():
         if i in (id1, id3) and w != 1:
             raise ValueError("Each match winner should have one win recorded.")
         elif i in (id2, id4) and w != 0:
-            raise ValueError("Each match loser should have zero wins recorded.")
+            raise ValueError(
+                  "Each match loser should have zero wins recorded.")
     print "9. After a match, players have updated standings."
     deleteMatches()
     standings = playerStandings(tournament_ids[0])
     if len(standings) != 4:
         raise ValueError(
-            "Match deletion should not change number of players in standings.")
+           "Match deletion should not change number of players in standings.")
     for (i, n, w, m) in standings:
         if m != 0:
-            raise ValueError(
-           "After deleting matches, players should have zero matches recorded.")
+            raise ValueError("After deleting matches, players should have "
+                             "zero matches recorded.")
         if w != 0:
             raise ValueError("After deleting matches, players should have "
                              "zero wins recorded.")
     print "10. After match deletion, player standings are properly reset."
     print "11. Matches are properly deleted."
 
+
 def testPairings():
-    """
-    Test that pairings are generated properly both before and after match reporting.
+    """Test that pairings are generated properly both before and
+       after match reporting.
     """
     deleteTournamentPlayers()
     deleteTournaments()
     deleteMatches()
     deletePlayers()
     tournament_id = registerTournament("VICTORY")
-    for player_name in [ 'Twilight Sparkle', 'Fluttershy', 'Applejack',
-                         'Pinkie Pie', 'Rarity', 'Rainbow Dash',
-                         'Princess Celestia', 'Princess Luna' ]:
+    for player_name in ['Twilight Sparkle', 'Fluttershy', 'Applejack',
+                        'Pinkie Pie', 'Rarity', 'Rainbow Dash',
+                        'Princess Celestia', 'Princess Luna']:
         p_id = registerPlayer(player_name)
         addPlayerToTournament(p_id, tournament_id)
     standings = playerStandings(tournament_id)
@@ -162,7 +170,8 @@ def testPairings():
     pairings = swissPairings(tournament_id)
     if len(pairings) != 4:
         raise ValueError(
-            "For eight players, swissPairings should return 4 pairs. Got {pairs}".format(pairs=len(pairings)))
+            "For eight players, swissPairings should return 4 pairs. "
+            "Got {pairs}".format(pairs=len(pairings)))
     reportMatch(id1, id2, 1, tournament_id)
     reportMatch(id3, id4, 1, tournament_id)
     reportMatch(id5, id6, 1, tournament_id)
@@ -170,8 +179,10 @@ def testPairings():
     pairings = swissPairings(tournament_id)
     if len(pairings) != 4:
         raise ValueError(
-            "For eight players, swissPairings should return 4 pairs. Got {pairs}".format(pairs=len(pairings)))
-    [(pid1, pname1, pid2, pname2), (pid3, pname3, pid4, pname4), (pid5, pname5, pid6, pname6), (pid7, pname7, pid8, pname8)] = pairings
+            "For eight players, swissPairings should return 4 pairs. "
+            "Got {pairs}".format(pairs=len(pairings)))
+    [(pid1, pname1, pid2, pname2), (pid3, pname3, pid4, pname4),
+     (pid5, pname5, pid6, pname6), (pid7, pname7, pid8, pname8)] = pairings
     possible_pairs = set([frozenset([id1, id3]), frozenset([id1, id5]),
                           frozenset([id1, id7]), frozenset([id3, id5]),
                           frozenset([id3, id7]), frozenset([id5, id7]),
@@ -179,7 +190,8 @@ def testPairings():
                           frozenset([id2, id8]), frozenset([id4, id6]),
                           frozenset([id4, id8]), frozenset([id6, id8])
                           ])
-    actual_pairs = set([frozenset([pid1, pid2]), frozenset([pid3, pid4]), frozenset([pid5, pid6]), frozenset([pid7, pid8])])
+    actual_pairs = set([frozenset([pid1, pid2]), frozenset([pid3, pid4]),
+                        frozenset([pid5, pid6]), frozenset([pid7, pid8])])
     for pair in actual_pairs:
         if pair not in possible_pairs:
             raise ValueError(
