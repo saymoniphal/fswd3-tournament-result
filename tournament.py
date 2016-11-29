@@ -63,25 +63,29 @@ def deleteTournaments(tournament=None):
         sql = "DELETE FROM tournament"
         if tournament is not None:
            sql += " WHERE id = " + tournament
+        sql += ";"
         cursor.execute(sql)
 
 
-def deletePlayers(tournament=None):
-    """Remove all the player records in tournament(s) from the database."""
+def deleteTournamentPlayers(tournament=None):
     with connect() as conn, getcursor(conn) as cursor:
-        sql =  "DELETE from"
-        if tournament is None:
-           sql += " player"
-        else:
-           sql += " player WHERE id IN (SELECT player_id FROM tournamentplayers\
-                    WHERE tournament_id = %s);"
-        cursor.execute(sql, [tournament])
+       sql = "DELETE FROM tournamentplayers"
+       if tournament is not None:
+          sql += " WHERE tournament_id = %s"
+       sql += ";"
+       cursor.execute(sql, [tournament])
 
 
-def deleteTournamentPlayers():
-    """Remove all the player records from the database."""
+def deletePlayers(ids=None):
+    """Remove the player(s) records in tournament from the database."""
     with connect() as conn, getcursor(conn) as cursor:
-        cursor.execute('DELETE from player')
+        sql =  "DELETE from player"
+        if ids is not None:
+           sql += " WHERE id IN ("
+           valuelist = ['%s' for i in range(len(ids))]
+           sql += ', '.join(valuelist) + ')'
+        sql += ";"
+        cursor.execute(sql, ids)
 
 
 def countPlayers(tournament=None):
@@ -91,23 +95,10 @@ def countPlayers(tournament=None):
         sql = "SELECT count(*) as nums from player"
         if tournament is not None:
            sql += " JOIN tournamentplayers \
-                    ON   hplayer.id = tournamentplayers.player_id \
-                    WHERE tournamentplayers.tournament_id = " + tournament
-        cursor.execute(sql)
-        nums = cursor.fetchone()[0]
-    return nums
-
-
-def countPlayers_in_tournament(tournament):
-    """Returns the number of players registered for given tournament.
-    Args:
-        tournament: the tournament id
-    """
-    nums = 0
-    with connect() as conn, getcursor(conn) as cursor:
-        sql = "SELECT count(*) as nums from tournamentplayers \
-               WHERE tournament_id=%s;", tournament
-        cursor.execute(sql, tournament)
+                    ON player.id = tournamentplayers.player_id \
+                    WHERE tournamentplayers.tournament_id = %s"
+        sql += ";"
+        cursor.execute(sql, [tournament])
         nums = cursor.fetchone()[0]
     return nums
 
@@ -121,36 +112,38 @@ def registerTournament(name, year=None):
        year: the  year that the tournament taken place
        (current year will be added in case of None)
     Returns:
-       return the tournament id.
+       return the tournament id number of last inserted.
     """
     with connect() as conn, getcursor(conn) as cursor:
-        sql = "INSERT INTO tournament(name, year) VALUES (%s,%s);"
+        sql = "INSERT INTO tournament(name, year) VALUES (%s,%s) \
+               RETURNING tournament_id;"
         if year is None:
             year = time.localtime().tm_year
         cursor.execute(sql, [name, year])
+        return cursor.fetchone()[0]
 
 
 def getTournamentIDs():
     """Returns list of tournament ids"""
 
     with connect() as conn, getcursor(conn) as cursor:
-       sql = "SELECT id from tournament;"
+       sql = "SELECT tournament_id from tournament;"
        cursor.execute(sql)
        ids = cursor.fetchall()
        return ids
 
 
-def registerPlayer(name, tournament, **kwargs):
+def registerPlayer(name, **kwargs):
     """Adds a player to the tournament database.
 
-    The database assigns a unique serial id number for the player.  (This
-    should be handled by your SQL database schema, not in your Python code.)
+    The database assigns a unique serial id number for the player.
 
     Args:
       name: the player's full name (need not be unique).
-      tournament: the id of the tournament.
       kwargs: a dictionary with key: 'gender', 'dob' as additional information
       of the player, could be None
+    Returns:
+      The id number of the last inserted player.
     """
     with connect() as conn, getcursor(conn) as cursor:
         sql = "INSERT INTO player (name"
@@ -164,8 +157,31 @@ def registerPlayer(name, tournament, **kwargs):
             queryargs.append(kwargs['dob'])
             valuelist.append('%s')
             sql += ", dob"
-        sql += ") values (" + ', '.join(valuelist) + ");"
+        sql += ") values (" + ', '.join(valuelist) + ")"
+        # need the last inserted id to add to tournamentplayers record 
+        sql += " RETURNING id;"
         cursor.execute(sql, queryargs)
+        return cursor.fetchone()[0]
+
+
+def getPlayer(player_id):
+    """Return player record"""
+    with connect() as conn, getcursor(conn) as cursor:
+       sql = "SELECT * FROM player WHERE id = %s;"
+       cursor.execute(sql, [player_id])
+       return cursor.fetchall()
+
+
+def addPlayerToTournament(player_id, tournament_id):
+    """Add player to tournament.
+    Args:
+       player_id: the id number of the player
+       tournament_id: the id number of the tournament.
+    """
+    with connect() as conn, getcursor(conn) as cursor:
+       sql = "INSERT INTO tournamentplayers(tournament_id, player_id) VALUES \
+               (%s, %s);"
+       cursor.execute(sql, [tournament_id, player_id])
 
 
 def playerStandings(tournament):
@@ -182,33 +198,25 @@ def playerStandings(tournament):
         name: the player's full name (as registered)
         wins: the number of matches the player has won
         matches: the number of matches the player has played
-
     """
     with connect() as conn, getcursor(conn) as cursor:
-        pass
+       sql = "SELECT * FROM playerStandings_view WHERE tournament_id=%s;"
 
 
-def reportMatch(id1, id2, match=None, tournament=None):
+def reportMatch(winner_id, loser_id, match, tournament):
     """Records the outcome of a single match between two players in a tournament.
 
     Args:
-      id1: the id number of the first player
-      id2: the id number of the second player
-      match: round of match(if None, all match rounds will be consider)
-      tournament: the id number of the tournament(consider all if None)
+      winner_id: the id number of the winner 
+      loser_id: the id number of the loser 
+      match: round of match
+      tournament: the id number of the tournament
     """
     with connect() as conn, getcursor(conn) as cursor:
-        sql = "SELECT * FROM match WHERE winner_id IN (%s, %s) AND \
-               loser_id IN (%s, %s)"
-        queryargs = [id1, id2, id1, id2]
-        if match is not None:
-            sql += " AND match_round = %s"
-            queryags.push(match)
-        if tournament is not None:
-            sql += " AND tournament = %s"
-            queryargs.push(tournament)
-        sql += ";" 
-        cursor.execute(sql, [id1, id2, id1, id2]) 
+        sql = "INSERT INTO match (winner_id, loser_id, match, tournament) \
+               values (%s, %s, %s, %s);"
+        queryargs = [winner_id, loser_id, match, tournament]
+        cursor.execute(sql, queryargs) 
 
 
 def swissPairings(tournament):
