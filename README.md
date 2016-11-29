@@ -1,6 +1,7 @@
 ## Project Overview
 This goal of project is to built a database schema and python program to keep
 track of players and matches in a game tournament using swiss-paring system.
+This supports multiple tournaments.
 
 ## How to run project
 
