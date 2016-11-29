@@ -1,3 +1,9 @@
+--  Create and connect to 'tournament' database.
+
+DROP DATABASE IF EXISTS tournament;
+CREATE DATABASE tournament;
+\c tournament;
+
 -- Table definitions for the tournament project.
 DROP TABLE IF EXISTS tournament CASCADE;
 CREATE TABLE tournament (
