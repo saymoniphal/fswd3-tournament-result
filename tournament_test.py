@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 #
 # Test cases for tournament.py
-# These tests are not exhaustive, but they should cover the majority of cases.
-#
-# If you do add any of the extra credit options, be sure to add/modify these test cases
-# as appropriate to account for your module's added functionality.
 
 from tournament import *
 
@@ -133,44 +129,45 @@ def testReportMatches():
             raise ValueError("Each match loser should have zero wins recorded.")
     print "9. After a match, players have updated standings."
     deleteMatches()
-    standings = playerStandings(tournament_id[0])
+    standings = playerStandings(tournament_ids[0])
     if len(standings) != 4:
-        raise ValueError("Match deletion should not change number of players in standings.")
+        raise ValueError(
+            "Match deletion should not change number of players in standings.")
     for (i, n, w, m) in standings:
         if m != 0:
-            raise ValueError("After deleting matches, players should have zero matches recorded.")
+            raise ValueError(
+           "After deleting matches, players should have zero matches recorded.")
         if w != 0:
-            raise ValueError("After deleting matches, players should have zero wins recorded.")
-    print "10. After match deletion, player standings are properly reset.\n9. Matches are properly deleted."
+            raise ValueError("After deleting matches, players should have "
+                             "zero wins recorded.")
+    print "10. After match deletion, player standings are properly reset."
+    print "11. Matches are properly deleted."
 
 def testPairings():
     """
     Test that pairings are generated properly both before and after match reporting.
     """
+    deleteTournamentPlayers()
     deleteTournaments()
     deleteMatches()
     deletePlayers()
-    registerTournament("Tour1")
-    tournament_ids = getTournamentIDs()
-    registerPlayer("Twilight Sparkle", tournament_ids[0])
-    registerPlayer("Fluttershy", tournament_ids[0])
-    registerPlayer("Applejack", tournament_ids[0])
-    registerPlayer("Pinkie Pie", tournament_ids[0])
-    registerPlayer("Rarity", tournament_ids[0])
-    registerPlayer("Rainbow Dash", tournament_ids[0])
-    registerPlayer("Princess Celestia", tournament_ids[0])
-    registerPlayer("Princess Luna", tournament_ids[0])
-    standings = playerStandings(tournament_ids[0])
+    tournament_id = registerTournament("VICTORY")
+    for player_name in [ 'Twilight Sparkle', 'Fluttershy', 'Applejack',
+                         'Pinkie Pie', 'Rarity', 'Rainbow Dash',
+                         'Princess Celestia', 'Princess Luna' ]:
+        p_id = registerPlayer(player_name)
+        addPlayerToTournament(p_id, tournament_id)
+    standings = playerStandings(tournament_id)
     [id1, id2, id3, id4, id5, id6, id7, id8] = [row[0] for row in standings]
-    pairings = swissPairings()
+    pairings = swissPairings(tournament_id)
     if len(pairings) != 4:
         raise ValueError(
             "For eight players, swissPairings should return 4 pairs. Got {pairs}".format(pairs=len(pairings)))
-    reportMatch(id1, id2, 1, tournament_ids[0])
-    reportMatch(id3, id4, 1, tournament_ids[0])
-    reportMatch(id5, id6, 1, tournament_ids[0])
-    reportMatch(id7, id8, 1, tournament_ids[0])
-    pairings = swissPairings()
+    reportMatch(id1, id2, 1, tournament_id)
+    reportMatch(id3, id4, 1, tournament_id)
+    reportMatch(id5, id6, 1, tournament_id)
+    reportMatch(id7, id8, 1, tournament_id)
+    pairings = swissPairings(tournament_id)
     if len(pairings) != 4:
         raise ValueError(
             "For eight players, swissPairings should return 4 pairs. Got {pairs}".format(pairs=len(pairings)))
@@ -187,7 +184,7 @@ def testPairings():
         if pair not in possible_pairs:
             raise ValueError(
                 "After one match, players with one win should be paired.")
-    print "11. After one match, players with one win are properly paired."
+    print "12. After one match, players with one win are properly paired."
 
 
 if __name__ == '__main__':

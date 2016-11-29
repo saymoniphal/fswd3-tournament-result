@@ -60,20 +60,24 @@ def deleteTournaments(tournament=None):
     """Remove the tournament record(s) from the database. If tournament id
        is None, then remove all the tournament records."""
     with connect() as conn, getcursor(conn) as cursor:
-        sql = "DELETE FROM tournament"
         if tournament is not None:
-           sql += " WHERE id = " + tournament
-        sql += ";"
-        cursor.execute(sql)
+            sql = "DELETE FROM tournament WHERE id = %s;"
+            args = (tournament,)
+        else:
+            sql = "DELETE FROM tournament;"
+            args = tuple() 
+        cursor.execute(sql, args)
 
 
 def deleteTournamentPlayers(tournament=None):
     with connect() as conn, getcursor(conn) as cursor:
-       sql = "DELETE FROM tournamentplayers"
        if tournament is not None:
-          sql += " WHERE tournament_id = %s"
-       sql += ";"
-       cursor.execute(sql, [tournament])
+           sql = "DELETE FROM tournamentplayers where tournament_id = %s;"
+           args = (tournament,)
+       else:
+           sql = "DELETE FROM tournamentplayers;"
+           args = (tournament,)
+       cursor.execute(sql, args)
 
 
 def deletePlayers(ids=None):
@@ -200,10 +204,12 @@ def playerStandings(tournament):
         matches: the number of matches the player has played
     """
     with connect() as conn, getcursor(conn) as cursor:
-       sql = "SELECT * FROM playerStandings_view WHERE tournament_id=%s;"
+       sql = "SELECT * FROM playerStandings_view;"
+       cursor.execute(sql)
+       return cursor.fetchall() 
 
 
-def reportMatch(winner_id, loser_id, match, tournament):
+def reportMatch(winner_id, loser_id, match_round, tournament_id):
     """Records the outcome of a single match between two players in a tournament.
 
     Args:
@@ -213,9 +219,9 @@ def reportMatch(winner_id, loser_id, match, tournament):
       tournament: the id number of the tournament
     """
     with connect() as conn, getcursor(conn) as cursor:
-        sql = "INSERT INTO match (winner_id, loser_id, match, tournament) \
-               values (%s, %s, %s, %s);"
-        queryargs = [winner_id, loser_id, match, tournament]
+        sql = "INSERT INTO match (winner_id, loser_id, match_round, \
+               tournament_id) VALUES (%s, %s, %s, %s);"
+        queryargs = [winner_id, loser_id, match_round, tournament_id]
         cursor.execute(sql, queryargs) 
 
 
@@ -238,5 +244,8 @@ def swissPairings(tournament):
         name2: the second player's name
     """
     with connect() as conn, getcursor(conn) as cursor:
-        pass
+        standings = playerStandings(tournament)
+        id_names = [ (elem[0], elem[1]) for elem in standings ]
+        return [ (elem[0][0], elem[0][1], elem[1][0], elem[1][1])
+                 for elem in zip(id_names[::2], id_names[1::2]) ]
 
