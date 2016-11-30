@@ -5,7 +5,6 @@ CREATE DATABASE tournament;
 \c tournament;
 
 -- Table definitions for the tournament project.
-DROP TABLE IF EXISTS tournament CASCADE;
 CREATE TABLE tournament (
    name text NOT NULL,
    year smallint check(
@@ -15,7 +14,6 @@ CREATE TABLE tournament (
 );
 
 
-DROP TABLE IF EXISTS player CASCADE;
 CREATE TABLE player (
    name text NOT NULL,
    gender text,
@@ -24,7 +22,6 @@ CREATE TABLE player (
 );
 
 
-DROP TABLE IF EXISTS tournamentplayers;
 CREATE TABLE tournamentplayers (
    tournament_id integer REFERENCES tournament (tournament_id),
    player_id integer REFERENCES player (id),
@@ -32,7 +29,6 @@ CREATE TABLE tournamentplayers (
 );
 
 
-DROP TABLE IF EXISTS match;
 CREATE TABLE match(
    match_id SERIAL PRIMARY KEY,
    tournament_id integer REFERENCES tournament (tournament_id),
@@ -68,7 +64,6 @@ CREATE TRIGGER match_control BEFORE INSERT OR UPDATE on match
 -- Create a view to get:
 -- all player and the number of matches player has won (wins)
 -- in all tournaments
-DROP VIEW IF EXISTS win_view;
 CREATE VIEW win_view AS
    SELECT player.id, player.name, COUNT (match.winner_id) as wins,
           tournament.tournament_id
@@ -81,7 +76,6 @@ CREATE VIEW win_view AS
 -- Create a view to get:
 -- all player and the number of matches the player has played (matches)
 -- in all tournaments
-DROP VIEW IF EXISTS match_view;
 CREATE VIEW match_view AS
    SELECT player.id, player.name, COUNT (match.match_id) as matches,
           tournament.tournament_id
@@ -91,7 +85,6 @@ CREATE VIEW match_view AS
    GROUP BY player.id, tournament.tournament_id ORDER BY matches;
 
 
-DROP VIEW IF EXISTS playerStandings_view;
 CREATE VIEW playerStandings_view AS
    SELECT win_view.id, win_view.name, win_view.wins,
           match_view.matches
