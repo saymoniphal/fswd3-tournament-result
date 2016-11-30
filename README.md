@@ -149,4 +149,7 @@ The project structure is as below:
 in tournament.py
 |-- database.ini: contains database configuration (database name)
 |-- config.py: provides access to database.ini file.
+
+|-- pg_config.sh and Vagrantfile: these files are taken from
+http://github.com/udacity/fullstack-nanodegree-vm as part of Udacity course.
 </pre>
