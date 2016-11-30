@@ -24,7 +24,7 @@ def testCount():
     print("1. countPlayers() returns 0 after initial deletePlayers()"
           "execution.")
     tournament_id = registerTournament("Tour1")
-    p_id1 = registerPlayer("Chandra Nalaar")
+    p_id1 = registerPlayer("Chandra Nalaar", gender='Male', dob='1990-10-20')
     addPlayerToTournament(p_id1, tournament_id)
     c = countPlayers(tournament_id)
     if c != 1:
